@@ -2,7 +2,7 @@ import json
 import pandas as pd
 import sqlite3 as sq
 
-def run(path):
+def main(path):
     '''
     Write a plugin that accepts a path 
     to a json file created by plugin #4 

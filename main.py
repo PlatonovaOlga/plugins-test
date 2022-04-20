@@ -6,42 +6,48 @@ import pkgutil
 import plugins
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument('-p', '--param', type=str)
-parser.add_argument('-o', '--option', default=None)
+def get_kwargs(plugins=None):
+    help_txt = 'Plugin system for media processing.\n\nAvailable plugins:\n' + '\n'.join(plugins)
 
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=help_txt, 
+        usage='main.py [-h] [plugin_name] [options]')
 
-def iter_namespace(ns_pkg):
-    return pkgutil.iter_modules(ns_pkg.__path__, ns_pkg.__name__ + ".")
+    parser.add_argument('-p', '--plugin')
+    parser.add_argument('-o', '--options')
+    
+    return parser.parse_args()
 
 
 def load_plugins():
-    discovered_plugins = {
+    def iter_namespace(ns_pkg):
+        return pkgutil.iter_modules(
+            ns_pkg.__path__, 
+            ns_pkg.__name__ + ".")
+
+    my_plugins = {
         name.split('.')[-1]: importlib.import_module(name)
         for finder, name, ispkg
         in iter_namespace(plugins)
     }
-    return discovered_plugins
+
+    return my_plugins
 
 
-def main(param, option):
-    plugins = load_plugins()
+def main(my_plugins, kwargs):
+    pl = kwargs.plugin
 
-    if not param or param == 'help':
+    if pl not in my_plugins:
         print('Available plugins:')
-        print('\n'.join(plugins.keys()))
+        print('\n'.join(my_plugins))
+        return
 
-    elif param in plugins.keys() and option in ['help', None]:
-        doc = plugins.get(param).run.__doc__
-        print(doc)
-
-    elif param in plugins.keys():
-        plugins.get(param).run(option)
-
-    else:
-        print('Failed to recognize command')
+    my_plugins.get(pl).\
+        main(kwargs.options)
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
-    main(args.param, args.option)
+    my_plugins = load_plugins()
+    kwargs = get_kwargs(my_plugins)
+    main(my_plugins, kwargs)

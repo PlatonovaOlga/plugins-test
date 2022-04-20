@@ -2,7 +2,7 @@ import sqlite3
 import pandas as pd
 import matplotlib.pyplot as plt
 
-def run(sql_path):
+def main(sql_path):
     '''
     Write a plugin that accepts a path to an sqlite database created by plugin #5 and 
     uses the `matplotplib` Python module to build a plot and save is as a `.png` image.
